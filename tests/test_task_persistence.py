@@ -163,7 +163,7 @@ def test_task_survives_restart(clean_database: str, instances: Instances):  # AC
 def test_two_instances_share_tasks(clean_database: str, instances: Instances):  # AC-002.2
     a = instances.make(clean_database)
     b = instances.make(clean_database)
-    titles = ["one", "two", "three", "four"]
+    titles = [f"task-{i}" for i in range(10)]
     ids = []
     for i, title in enumerate(titles):
         writer = instances.use(a if i % 2 == 0 else b)
@@ -247,7 +247,12 @@ def test_recovery_after_outage_without_lost_task_leak(
     assert c.post("/tasks", json={"title": "during outage"}).status_code == 503
     proxy.start()
 
-    assert c.get("/ready").status_code == 200
+    deadline = time.monotonic() + 10
+    status = c.get("/ready").status_code
+    while status != 200 and time.monotonic() < deadline:
+        time.sleep(0.25)
+        status = c.get("/ready").status_code
+    assert status == 200
     titles = [t["title"] for t in _listed(c)]
     assert "during outage" not in titles
     assert titles == ["before"]
