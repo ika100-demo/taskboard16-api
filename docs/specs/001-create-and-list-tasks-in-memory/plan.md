@@ -4,44 +4,22 @@ shape: service-python
 spec_hash: e71cb0057449
 summary: In-memory POST /tasks and GET /tasks with strict title and due_date validation
 tasks:
-- id: t2
-  title: Add TaskCreate and TaskOut schemas with validation
-  files: [src/taskboard16_api/tasks/schemas.py, tests/test_task_schemas.py]
-  covers: [AC-001.1, AC-001.2, AC-001.3, AC-001.4]
-  parallel_safe: true
-  depends_on: []
 - id: t3
   title: Expose POST /tasks and GET /tasks and wire the router into the app
   files: [src/taskboard16_api/tasks/router.py, src/taskboard16_api/tasks/__init__.py, src/taskboard16_api/main.py, src/taskboard16_api/tasks/store.py,
-    tests/test_task_store.py]
+    tests/test_task_store.py, src/taskboard16_api/tasks/schemas.py, tests/test_task_schemas.py]
   covers: [AC-001.1, AC-001.2, AC-001.3, AC-001.4, AC-001.5, AC-001.6, AC-001.7]
   parallel_safe: false
-  depends_on: [t2]
+  depends_on: []
 ---
 
 # Plan — 001 Create and list tasks in memory
 
 See [design.md](design.md) for the contract and signatures.
 
-## t2 — Add TaskCreate and TaskOut schemas with validation
-
-**Files:** src/taskboard16_api/tasks/schemas.py, tests/test_task_schemas.py
-**Covers:** AC-001.1, AC-001.2, AC-001.3, AC-001.4
-**Goal:** request and response models that enforce exactly the validation rules of the contract.
-
-**Implementation notes:**
-- `TaskCreate.title: StrictStr` with an after-validator: `1 <= len(v.strip()) <= 200`, return `v` unchanged (A3, A4).
-- `TaskCreate.due_date: date | None = None` with a `mode="before"` validator: `None` passes; a `str` must match `^\d{4}-\d{2}-\d{2}$` and parse with `date.fromisoformat` (catches `2026-02-30`); any other type or value raises `ValueError`.
-- Default `extra="ignore"` (A8).
-- `TaskOut(id: str, title: str, due_date: date | None)`; serialises the date as `YYYY-MM-DD`.
-- Do not create `tasks/__init__.py` (see t1).
-- Unit tests for each 422 case in AC-001.3 and AC-001.4 (incl. integer timestamp and `T00:00:00` suffix), title preserved with surrounding spaces, 200 characters after trim accepted, 201 rejected.
-
-**Done when:** `tests/test_task_schemas.py` passes and `devbox run quality` is green.
-
 ## t3 — Expose POST /tasks and GET /tasks and wire the router into the app
 
-**Files:** src/taskboard16_api/tasks/router.py, src/taskboard16_api/tasks/__init__.py, src/taskboard16_api/main.py, src/taskboard16_api/tasks/store.py, tests/test_task_store.py
+**Files:** src/taskboard16_api/tasks/router.py, src/taskboard16_api/tasks/__init__.py, src/taskboard16_api/main.py, src/taskboard16_api/tasks/store.py, tests/test_task_store.py, src/taskboard16_api/tasks/schemas.py, tests/test_task_schemas.py
 **Covers:** AC-001.1, AC-001.2, AC-001.3, AC-001.4, AC-001.5, AC-001.6, AC-001.7
 **Goal:** the HTTP contract of design.md, end to end.
 
@@ -68,4 +46,20 @@ See [design.md](design.md) for the contract and signatures.
 - Unit tests: a new store is empty; three adds come back in order with distinct ids; concurrent adds from threads lose none.
 
 **Done when:** `tests/test_task_store.py` passes and `devbox run quality` is green.
+
+**Merged from t2 — Add TaskCreate and TaskOut schemas with validation** (t2 acceptance tests (AC-001.1-4) can only pass once t3 adds the /tasks routes; all failures are 404):
+
+**Files:** src/taskboard16_api/tasks/schemas.py, tests/test_task_schemas.py
+**Covers:** AC-001.1, AC-001.2, AC-001.3, AC-001.4
+**Goal:** request and response models that enforce exactly the validation rules of the contract.
+
+**Implementation notes:**
+- `TaskCreate.title: StrictStr` with an after-validator: `1 <= len(v.strip()) <= 200`, return `v` unchanged (A3, A4).
+- `TaskCreate.due_date: date | None = None` with a `mode="before"` validator: `None` passes; a `str` must match `^\d{4}-\d{2}-\d{2}$` and parse with `date.fromisoformat` (catches `2026-02-30`); any other type or value raises `ValueError`.
+- Default `extra="ignore"` (A8).
+- `TaskOut(id: str, title: str, due_date: date | None)`; serialises the date as `YYYY-MM-DD`.
+- Do not create `tasks/__init__.py` (see t1).
+- Unit tests for each 422 case in AC-001.3 and AC-001.4 (incl. integer timestamp and `T00:00:00` suffix), title preserved with surrounding spaces, 200 characters after trim accepted, 201 rejected.
+
+**Done when:** `tests/test_task_schemas.py` passes and `devbox run quality` is green.
 
