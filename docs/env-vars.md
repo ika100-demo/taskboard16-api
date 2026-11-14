@@ -9,6 +9,16 @@ Configuration is read exclusively from environment variables. Defaults below are
 | `PORT` | `8080` | HTTP port the service listens on. |
 | `LOG_LEVEL` | `INFO` | Logging level. One of `DEBUG`, `INFO`, `WARNING`, `ERROR`. |
 
+## Database
+
+No defaults: the values are injected by the gitops entry's `uses: postgres`. Never log them.
+
+| Variable | Default | Description |
+|---|---|---|
+| `DATABASE_URL` | _(unset)_ | libpq connection URI of the Postgres database holding the tasks. When unset, libpq reads the `PG*` variables below. |
+| `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | _(unset)_ | Standard libpq settings, used when `DATABASE_URL` is unset. |
+| `TEST_DATABASE_URL` | _(unset)_ | Tests only: a Postgres URI the test suite uses instead of starting a throwaway testcontainer (runners without Docker). |
+
 ## Observability
 
 | Variable | Default | Description |

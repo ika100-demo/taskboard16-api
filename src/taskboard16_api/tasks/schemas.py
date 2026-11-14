@@ -19,6 +19,8 @@ class TaskCreate(BaseModel):
     def _check_title(cls, v: str) -> str:
         if not 1 <= len(v.strip()) <= _MAX_TITLE:
             raise ValueError("title must be 1 to 200 characters after trimming")
+        if "\x00" in v:
+            raise ValueError("title must not contain the NUL character")
         return v
 
     @field_validator("due_date", mode="before")
