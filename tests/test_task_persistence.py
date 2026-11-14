@@ -110,6 +110,10 @@ class DbProxy:
     def stop(self) -> None:
         listener, self._listener = self._listener, None
         if listener is not None:
+            try:
+                listener.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
             listener.close()
         with self._lock:
             conns, self._conns = self._conns, []
