@@ -26,7 +26,7 @@ As a taskboard user, I want to list all tasks, so that I can see everything I re
 - **AC-001.4** Given a running service, when a client sends `POST /tasks` whose `due_date` is not a calendar date in the form `YYYY-MM-DD` (for example `"tomorrow"`, `"2026-02-30"` or `"2026-12-01T10:00:00Z"`), then the response is 422, and the task does not appear in `GET /tasks`.
 - **AC-001.5** Given three tasks created one after another, when a client sends `GET /tasks`, then the response is 200 with a JSON array of those three tasks, each with `id`, `title` and `due_date`, in the order they were created, and every `id` is distinct.
 - **AC-001.6** Given no task has been created since the service started, when a client sends `GET /tasks`, then the response is 200 with an empty JSON array `[]`. (smoke)
-- **AC-001.7** Given tasks were created, when the service restarts and a client sends `GET /tasks`, then the response is 200 with `[]`.
+- ~~**AC-001.7**~~ superseded by AC-002.1 on 2026-11-14: Given tasks were created, when the service restarts and a client sends `GET /tasks`, then the response is 200 with `[]`.
 
 ## Non-goals
 
@@ -58,3 +58,4 @@ none
 - 2026-11-14 approved
 - 2026-11-14 building
 - 2026-11-14 done
+- 2026-11-14 AC-001.7 superseded by AC-002.1

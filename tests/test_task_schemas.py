@@ -11,7 +11,7 @@ from taskboard16_api.tasks.schemas import TaskCreate, TaskOut
 
 @pytest.mark.parametrize(
     "title",
-    [None, 123, "", "   ", "x" * 201, ["a"]],
+    [None, 123, "", "   ", "x" * 201, ["a"], "a\x00b"],
 )
 def test_invalid_title_rejected(title: Any) -> None:
     with pytest.raises(ValidationError):

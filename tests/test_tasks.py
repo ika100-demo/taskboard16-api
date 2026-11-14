@@ -11,18 +11,19 @@ from taskboard16_api.main import app
 
 
 @pytest.fixture()
-def tasks_client() -> Iterator[TestClient]:
+def tasks_client(clean_database: str) -> Iterator[TestClient]:
     """A client on an app with an empty task store (state right after a start)."""
     try:
         from taskboard16_api.tasks import store
     except ImportError:
         pytest.fail("module taskboard16_api.tasks.store is missing")
-    fresh = store.TaskStore()
+    fresh = store.TaskStore(clean_database)
     app.dependency_overrides[store.get_task_store] = lambda: fresh
     try:
         yield TestClient(app)
     finally:
         app.dependency_overrides.pop(store.get_task_store, None)
+        fresh.close()
 
 
 def _listed(client: TestClient) -> list[dict]:
@@ -93,13 +94,3 @@ def test_list_is_empty_initially(tasks_client: TestClient):  # AC-001.6
     response = tasks_client.get("/tasks")
     assert response.status_code == 200
     assert response.json() == []
-
-
-def test_restart_empties_the_list(tasks_client: TestClient):  # AC-001.7
-    assert tasks_client.post("/tasks", json={"title": "gone soon"}).status_code == 201
-    assert len(_listed(tasks_client)) == 1
-    from taskboard16_api.tasks import store
-
-    restarted = store.TaskStore()
-    app.dependency_overrides[store.get_task_store] = lambda: restarted
-    assert _listed(TestClient(app)) == []
